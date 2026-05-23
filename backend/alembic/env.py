@@ -8,6 +8,7 @@ from alembic import context
 # Import app config and database base to get target_metadata and DATABASE_URL
 from app.config import get_settings
 from app.database import Base
+import app.models  # noqa: F401 — ensures models register with Base.metadata
 
 settings = get_settings()
 
@@ -15,8 +16,10 @@ settings = get_settings()
 # access to the values within the .ini file in use.
 config = context.config
 
-# Override sqlalchemy.url with our actual DATABASE_URL
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Override sqlalchemy.url with our actual DATABASE_URL only if not already set
+# (allows tests to inject a custom DB without being overwritten).
+if not config.get_main_option("sqlalchemy.url") or config.get_main_option("sqlalchemy.url") == "placeholder":
+    config.set_main_option("sqlalchemy.url", settings.database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
