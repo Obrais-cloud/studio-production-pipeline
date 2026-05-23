@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     api_prefix: str = "/api"
 
+    # Database
+    database_url: str = "sqlite:///./studio.db"
+
     # YouTube
     youtube_client_secrets: str = ""
     youtube_client_id: str = ""

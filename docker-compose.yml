@@ -1,4 +1,20 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+      POSTGRES_DB: studio_pipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studio -d studio_pipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     ports:
@@ -9,8 +25,12 @@ services:
       - APP_NAME=Studio Production Pipeline API
       - CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
       - API_PREFIX=/api
+      - DATABASE_URL=postgresql://studio:studio@db:5432/studio_pipeline
       - YOUTUBE_CLIENT_SECRETS=/app/secrets/client_secret.json
       - VIMEO_ACCESS_TOKEN=${VIMEO_ACCESS_TOKEN}
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -26,3 +46,6 @@ services:
       - "3001:80"
     depends_on:
       - backend
+
+volumes:
+  postgres_data:

@@ -2,11 +2,23 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
+from app.database import init_db, SessionLocal
+from app.seed import seed_database
 from app.routers import projects, production, assets, chat, publish
 
 settings = get_settings()
 
 app = FastAPI(title=settings.app_name, version="1.0.0")
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    init_db()
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
 
 # CORS
 origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]

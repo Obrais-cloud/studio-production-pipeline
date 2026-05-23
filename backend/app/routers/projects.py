@@ -1,68 +1,15 @@
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models import Project as ProjectDB
 from app.models.schemas import Project, ProjectCreate, ProjectStatus
 
 router = APIRouter(prefix="/projects", tags=["projects"])
-
-PROJECTS: list[Project] = [
-    Project(
-        id="proj-1",
-        title="Cortometraje Verano 2026",
-        studio="Cinefactory",
-        description="Producción de cortometraje independiente para festival de cine.",
-        status=ProjectStatus.PRODUCTION,
-        budget=15000.0,
-        deadline=datetime(2026, 7, 15, tzinfo=timezone.utc),
-        created_at=datetime(2026, 3, 1, tzinfo=timezone.utc),
-        updated_at=datetime(2026, 5, 10, tzinfo=timezone.utc),
-        tasks_completed=8,
-        tasks_total=12,
-        assets_count=24,
-    ),
-    Project(
-        id="proj-2",
-        title="Serie YouTube: Historias Perdidas",
-        studio="100 Sutton",
-        description="Serie documental de 6 episodios sobre historia local.",
-        status=ProjectStatus.POST_PRODUCTION,
-        budget=8000.0,
-        deadline=datetime(2026, 6, 30, tzinfo=timezone.utc),
-        created_at=datetime(2026, 2, 10, tzinfo=timezone.utc),
-        updated_at=datetime(2026, 5, 18, tzinfo=timezone.utc),
-        tasks_completed=18,
-        tasks_total=20,
-        assets_count=67,
-    ),
-    Project(
-        id="proj-3",
-        title="Spot Publicitario Cinexin",
-        studio="Cinexin",
-        description="Spot de 30 segundos para campaña de verano del cine.",
-        status=ProjectStatus.REVIEW,
-        budget=5000.0,
-        deadline=datetime(2026, 5, 28, tzinfo=timezone.utc),
-        created_at=datetime(2026, 4, 5, tzinfo=timezone.utc),
-        updated_at=datetime(2026, 5, 20, tzinfo=timezone.utc),
-        tasks_completed=10,
-        tasks_total=10,
-        assets_count=15,
-    ),
-    Project(
-        id="proj-4",
-        title="Podcast: La Butaca",
-        studio="100 Sutton",
-        description="Podcast semanal de crítica cinematográfica.",
-        status=ProjectStatus.IDEA,
-        budget=2000.0,
-        deadline=datetime(2026, 8, 1, tzinfo=timezone.utc),
-        created_at=datetime(2026, 5, 15, tzinfo=timezone.utc),
-        updated_at=datetime(2026, 5, 15, tzinfo=timezone.utc),
-        tasks_completed=0,
-        tasks_total=6,
-        assets_count=0,
-    ),
-]
 
 
 @router.get("", response_model=list[Project])
@@ -70,35 +17,45 @@ def list_projects(
     status: Optional[ProjectStatus] = Query(None),
     studio: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
 ) -> list[Project]:
-    results = PROJECTS[:]
+    query = db.query(ProjectDB)
     if status:
-        results = [p for p in results if p.status == status]
+        query = query.filter(ProjectDB.status == status.value)
     if studio:
-        results = [p for p in results if studio.lower() in p.studio.lower()]
+        query = query.filter(ProjectDB.studio.ilike(f"%{studio}%"))
     if q:
-        results = [p for p in results if q.lower() in p.title.lower() or (p.description and q.lower() in p.description.lower())]
-    return results
+        query = query.filter(
+            (ProjectDB.title.ilike(f"%{q}%")) | (ProjectDB.description.ilike(f"%{q}%"))
+        )
+    return query.all()
 
 
 @router.get("/{project_id}", response_model=Project)
-def get_project(project_id: str) -> Project:
-    for p in PROJECTS:
-        if p.id == project_id:
-            return p
-    raise HTTPException(status_code=404, detail="Project not found")
+def get_project(project_id: str, db: Session = Depends(get_db)) -> Project:
+    project = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project
 
 
 @router.post("", response_model=Project)
-def create_project(payload: ProjectCreate) -> Project:
-    project = Project(
-        id=f"proj-{len(PROJECTS)+1}",
+def create_project(payload: ProjectCreate, db: Session = Depends(get_db)) -> Project:
+    project = ProjectDB(
+        id=f"proj-{uuid4().hex[:12]}",
+        title=payload.title,
+        studio=payload.studio,
+        description=payload.description,
+        status=payload.status.value,
+        budget=payload.budget,
+        deadline=payload.deadline,
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
         tasks_completed=0,
         tasks_total=0,
         assets_count=0,
-        **payload.model_dump(),
     )
-    PROJECTS.append(project)
+    db.add(project)
+    db.commit()
+    db.refresh(project)
     return project
