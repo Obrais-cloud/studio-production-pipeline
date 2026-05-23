@@ -3,10 +3,14 @@ services:
     build: ./backend
     ports:
       - "8001:8000"
+    volumes:
+      - ./videos:/app/videos:ro
     environment:
       - APP_NAME=Studio Production Pipeline API
       - CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
       - API_PREFIX=/api
+      - YOUTUBE_CLIENT_SECRETS=/app/secrets/client_secret.json
+      - VIMEO_ACCESS_TOKEN=${VIMEO_ACCESS_TOKEN}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

@@ -7,6 +7,7 @@ import Timeline from "@/components/Timeline";
 import AssetLibrary from "@/components/AssetLibrary";
 import ChatPanel from "@/components/ChatPanel";
 import { api, type Project, type Asset, type PipelineItem } from "@/lib/api";
+import PublishPanel from "@/components/PublishPanel";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -80,6 +81,10 @@ export default function Dashboard() {
         <div className="mb-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">Proyectos</h2>
           <KanbanBoard projects={projects} />
+        </div>
+
+        <div className="mb-6">
+          <PublishPanel />
         </div>
 
         <div className="mb-6">

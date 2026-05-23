@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
-from app.routers import projects, production, assets, chat
+from app.routers import projects, production, assets, chat, publish
 
 settings = get_settings()
 
@@ -28,6 +28,7 @@ app.include_router(projects.router, prefix=f"{settings.api_prefix}")
 app.include_router(production.router, prefix=f"{settings.api_prefix}")
 app.include_router(assets.router, prefix=f"{settings.api_prefix}")
 app.include_router(chat.router, prefix=f"{settings.api_prefix}")
+app.include_router(publish.router, prefix=f"{settings.api_prefix}")
 
 
 @app.get("/health")

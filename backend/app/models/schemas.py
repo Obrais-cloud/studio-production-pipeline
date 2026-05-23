@@ -102,3 +102,48 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     suggested_actions: list[str] = []
+
+
+# Publishing schemas
+class Platform(str, Enum):
+    YOUTUBE = "youtube"
+    VIMEO = "vimeo"
+
+
+class PublishStatus(str, Enum):
+    QUEUED = "queued"
+    UPLOADING = "uploading"
+    PROCESSING = "processing"
+    LIVE = "live"
+    FAILED = "failed"
+
+
+class PublishRequest(BaseModel):
+    project_id: str = Field(..., min_length=1)
+    platform: Platform
+    title: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=5000)
+    tags: list[str] = []
+    privacy: str = "private"  # public, private, unlisted
+    video_path: str = Field(..., min_length=1)  # local path or URL to the video file
+    thumbnail_path: Optional[str] = None
+
+
+class PublishJob(BaseModel):
+    id: str
+    project_id: str
+    platform: Platform
+    title: str
+    status: PublishStatus
+    external_id: Optional[str] = None  # YouTube video ID or Vimeo video URI
+    url: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    error_message: Optional[str] = None
+
+
+class PlatformStatus(BaseModel):
+    platform: Platform
+    connected: bool
+    account_name: Optional[str] = None
+    error: Optional[str] = None

@@ -57,4 +57,25 @@ Copia `backend/.env.example` a `backend/.env` y ajusta:
 | GET | `/api/assets` | Listar assets |
 | GET | `/api/assets/types` | Tipos de asset |
 | POST | `/api/chat` | Chat con asistente |
+| POST | `/api/publish/youtube` | Subir video a YouTube |
+| POST | `/api/publish/vimeo` | Subir video a Vimeo |
+| GET | `/api/publish/jobs` | Estado de publicaciones |
+| GET | `/api/publish/status` | Plataformas conectadas |
 | GET | `/health` | Healthcheck |
+
+## Publicación automática (YouTube / Vimeo)
+
+### YouTube
+1. Crea un proyecto en [Google Cloud Console](https://console.cloud.google.com/)
+2. Habilita la **YouTube Data API v3**
+3. Descarga el `client_secret.json` de tipo **Desktop app**
+4. Copia el archivo a `backend/client_secret.json`
+5. Obtén un `refresh_token` ejecutando `python -m scripts.auth_youtube` (o genera uno manualmente con OAuth 2.0)
+6. Guarda el `refresh_token` en `backend/.env` como `YOUTUBE_REFRESH_TOKEN`
+
+### Vimeo
+1. Genera un **Access Token** con permisos `upload`, `edit`, `delete` en [Vimeo Developer](https://developer.vimeo.com/)
+2. Guarda el token en `backend/.env` como `VIMEO_ACCESS_TOKEN`
+
+### Volúmenes de video
+El `docker-compose.yml` monta `./videos` en el backend. Coloca tus archivos de video en esa carpeta antes de publicar, o usa una ruta accesible desde el contenedor.

@@ -35,6 +35,13 @@ export const api = {
   getAssetTypes: () => fetchJSON<{ type: string; label: string }[]>("/assets/types"),
   chat: (message: string) =>
     fetchJSON<ChatResponse>("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) }),
+  getPlatformStatus: () => fetchJSON<PlatformStatus[]>("/publish/status/platforms"),
+  publishToYouTube: (body: PublishRequest) =>
+    fetchJSON<PublishJob>("/publish/youtube", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  publishToVimeo: (body: PublishRequest) =>
+    fetchJSON<PublishJob>("/publish/vimeo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  getPublishJobs: (qs?: string) =>
+    fetchJSON<PublishJob[]>(`/publish/jobs${qs ? "?" + qs : ""}`),
 };
 
 export interface Project {
@@ -102,4 +109,35 @@ export interface Asset {
 export interface ChatResponse {
   reply: string;
   suggested_actions: string[];
+}
+
+export interface PublishRequest {
+  project_id: string;
+  platform: "youtube" | "vimeo";
+  title: string;
+  description?: string;
+  tags: string[];
+  privacy: string;
+  video_path: string;
+  thumbnail_path?: string;
+}
+
+export interface PublishJob {
+  id: string;
+  project_id: string;
+  platform: string;
+  title: string;
+  status: string;
+  external_id?: string;
+  url?: string;
+  created_at: string;
+  updated_at: string;
+  error_message?: string;
+}
+
+export interface PlatformStatus {
+  platform: string;
+  connected: boolean;
+  account_name?: string;
+  error?: string;
 }
