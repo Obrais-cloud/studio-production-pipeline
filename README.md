@@ -42,8 +42,31 @@ npm run dev
 
 Copia `backend/.env.example` a `backend/.env` y ajusta:
 
+- `DATABASE_URL` — SQLite para desarrollo local, PostgreSQL para Docker
 - `CORS_ORIGINS` — URLs del frontend permitidas
 - `API_PREFIX` — Prefijo de rutas API (default: `/api`)
+
+## Migraciones de base de datos (Alembic)
+
+Las migraciones gestionan el esquema de la base de datos de forma versionada.
+
+```bash
+cd backend
+
+# Generar una nueva migración tras cambiar los modelos
+alembic revision --autogenerate -m "descripción del cambio"
+
+# Aplicar migraciones pendientes
+alembic upgrade head
+
+# Revertir la última migración
+alembic downgrade -1
+
+# Ver estado actual
+alembic current
+```
+
+En Docker Compose, las migraciones se ejecutan automáticamente al iniciar el backend.
 
 ## API Endpoints
 

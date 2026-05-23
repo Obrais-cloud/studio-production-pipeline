@@ -11,9 +11,18 @@ settings = get_settings()
 app = FastAPI(title=settings.app_name, version="1.0.0")
 
 
+def _run_migrations() -> None:
+    """Run Alembic migrations to ensure the database schema is up to date."""
+    from alembic.config import Config
+    from alembic import command
+
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db()
+    _run_migrations()
     db = SessionLocal()
     try:
         seed_database(db)
