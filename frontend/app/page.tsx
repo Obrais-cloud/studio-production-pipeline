@@ -79,7 +79,9 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-6">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">Proyectos</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+            Proyectos
+          </h2>
           <KanbanBoard projects={projects} />
         </div>
 

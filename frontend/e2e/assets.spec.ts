@@ -8,7 +8,14 @@ function setupAssetMocks(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ total_projects: 0, active_projects: 0, completed_this_month: 0, total_assets: 0, pipeline: [], upcoming_deadlines: [] }),
+      body: JSON.stringify({
+        total_projects: 0,
+        active_projects: 0,
+        completed_this_month: 0,
+        total_assets: 0,
+        pipeline: [],
+        upcoming_deadlines: [],
+      }),
     });
   });
   page.route("**/api/production/pipeline", async (route) => {
@@ -26,10 +33,42 @@ function setupAssetMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify([
-        { id: "asset-1", project_id: "proj-1", name: "Guion_v1.pdf", type: "script", size_bytes: 245760, created_at: "2025-03-01T10:00:00Z", uploaded_by: "Ana" },
-        { id: "asset-2", project_id: "proj-1", name: "Storyboard_A.jpg", type: "storyboard", size_bytes: 1048576, created_at: "2025-03-02T11:00:00Z", uploaded_by: "Luis" },
-        { id: "asset-3", project_id: "proj-1", name: "Footage_001.mp4", type: "footage", size_bytes: 2147483648, created_at: "2025-03-05T09:00:00Z", uploaded_by: "María" },
-        { id: "asset-4", project_id: "proj-1", name: "Audio_master.wav", type: "audio", size_bytes: 52428800, created_at: "2025-03-10T14:00:00Z", uploaded_by: "Carlos" },
+        {
+          id: "asset-1",
+          project_id: "proj-1",
+          name: "Guion_v1.pdf",
+          type: "script",
+          size_bytes: 245760,
+          created_at: "2025-03-01T10:00:00Z",
+          uploaded_by: "Ana",
+        },
+        {
+          id: "asset-2",
+          project_id: "proj-1",
+          name: "Storyboard_A.jpg",
+          type: "storyboard",
+          size_bytes: 1048576,
+          created_at: "2025-03-02T11:00:00Z",
+          uploaded_by: "Luis",
+        },
+        {
+          id: "asset-3",
+          project_id: "proj-1",
+          name: "Footage_001.mp4",
+          type: "footage",
+          size_bytes: 2147483648,
+          created_at: "2025-03-05T09:00:00Z",
+          uploaded_by: "María",
+        },
+        {
+          id: "asset-4",
+          project_id: "proj-1",
+          name: "Audio_master.wav",
+          type: "audio",
+          size_bytes: 52428800,
+          created_at: "2025-03-10T14:00:00Z",
+          uploaded_by: "Carlos",
+        },
       ]),
     });
   });

@@ -1,10 +1,6 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
-async function fetchJSON<T>(
-  path: string,
-  opts?: RequestInit,
-  retries = 2
-): Promise<T> {
+async function fetchJSON<T>(path: string, opts?: RequestInit, retries = 2): Promise<T> {
   const url = `${API_BASE}${path}`;
   try {
     const res = await fetch(url, opts);
@@ -23,25 +19,38 @@ async function fetchJSON<T>(
 }
 
 export const api = {
-  getProjects: (qs?: string) =>
-    fetchJSON<Project[]>(`/projects${qs ? "?" + qs : ""}`),
+  getProjects: (qs?: string) => fetchJSON<Project[]>(`/projects${qs ? "?" + qs : ""}`),
   getProject: (id: string) => fetchJSON<Project>(`/projects/${id}`),
   createProject: (body: ProjectCreate) =>
-    fetchJSON<Project>("/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    fetchJSON<Project>("/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
   getPipeline: () => fetchJSON<PipelineItem[]>("/production/pipeline"),
   getDashboard: () => fetchJSON<DashboardSummary>("/production/dashboard"),
-  getAssets: (qs?: string) =>
-    fetchJSON<Asset[]>(`/assets${qs ? "?" + qs : ""}`),
+  getAssets: (qs?: string) => fetchJSON<Asset[]>(`/assets${qs ? "?" + qs : ""}`),
   getAssetTypes: () => fetchJSON<{ type: string; label: string }[]>("/assets/types"),
   chat: (message: string) =>
-    fetchJSON<ChatResponse>("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }) }),
+    fetchJSON<ChatResponse>("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    }),
   getPlatformStatus: () => fetchJSON<PlatformStatus[]>("/publish/status/platforms"),
   publishToYouTube: (body: PublishRequest) =>
-    fetchJSON<PublishJob>("/publish/youtube", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    fetchJSON<PublishJob>("/publish/youtube", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
   publishToVimeo: (body: PublishRequest) =>
-    fetchJSON<PublishJob>("/publish/vimeo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
-  getPublishJobs: (qs?: string) =>
-    fetchJSON<PublishJob[]>(`/publish/jobs${qs ? "?" + qs : ""}`),
+    fetchJSON<PublishJob>("/publish/vimeo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  getPublishJobs: (qs?: string) => fetchJSON<PublishJob[]>(`/publish/jobs${qs ? "?" + qs : ""}`),
 };
 
 export interface Project {

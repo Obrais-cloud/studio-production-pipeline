@@ -16,9 +16,7 @@ test.describe("Layout", () => {
   test("page has dark background", async ({ page }) => {
     await page.goto("/");
     const body = page.locator("body");
-    const bg = await body.evaluate((el) =>
-      window.getComputedStyle(el).backgroundColor
-    );
+    const bg = await body.evaluate((el) => window.getComputedStyle(el).backgroundColor);
     expect(bg).toBe("rgb(11, 15, 25)");
   });
 });

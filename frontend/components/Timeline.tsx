@@ -18,7 +18,9 @@ export default function Timeline({ pipeline }: { pipeline: PipelineItem[] }) {
 
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">Pipeline de Producción</h2>
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+        Pipeline de Producción
+      </h2>
       <div className="flex items-center gap-0">
         {PHASE_ORDER.map((phase, idx) => {
           const item = byPhase[phase];
@@ -33,13 +35,24 @@ export default function Timeline({ pipeline }: { pipeline: PipelineItem[] }) {
                   className="flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition"
                   style={{
                     borderColor: isDone || isActive ? "var(--color-accent)" : "var(--color-border)",
-                    backgroundColor: isDone ? "var(--color-accent)" : isActive ? "rgba(59,130,246,0.15)" : "transparent",
-                    color: isDone ? "#fff" : isActive ? "var(--color-accent)" : "var(--color-muted)",
+                    backgroundColor: isDone
+                      ? "var(--color-accent)"
+                      : isActive
+                        ? "rgba(59,130,246,0.15)"
+                        : "transparent",
+                    color: isDone
+                      ? "#fff"
+                      : isActive
+                        ? "var(--color-accent)"
+                        : "var(--color-muted)",
                   }}
                 >
                   {isDone ? "✓" : idx + 1}
                 </div>
-                <span className="text-xs font-medium text-center" style={{ color: isDone || isActive ? "#fff" : "var(--color-muted)" }}>
+                <span
+                  className="text-xs font-medium text-center"
+                  style={{ color: isDone || isActive ? "#fff" : "var(--color-muted)" }}
+                >
                   {PHASE_LABELS[phase]}
                 </span>
                 {item && (
@@ -49,7 +62,12 @@ export default function Timeline({ pipeline }: { pipeline: PipelineItem[] }) {
                 )}
               </div>
               {idx < PHASE_ORDER.length - 1 && (
-                <div className="mx-1 h-0.5 flex-1 rounded" style={{ backgroundColor: isDone ? "var(--color-accent)" : "var(--color-border)" }} />
+                <div
+                  className="mx-1 h-0.5 flex-1 rounded"
+                  style={{
+                    backgroundColor: isDone ? "var(--color-accent)" : "var(--color-border)",
+                  }}
+                />
               )}
             </div>
           );

@@ -8,7 +8,14 @@ function setupBaseMocks(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ total_projects: 0, active_projects: 0, completed_this_month: 0, total_assets: 0, pipeline: [], upcoming_deadlines: [] }),
+      body: JSON.stringify({
+        total_projects: 0,
+        active_projects: 0,
+        completed_this_month: 0,
+        total_assets: 0,
+        pipeline: [],
+        upcoming_deadlines: [],
+      }),
     });
   });
   page.route("**/api/production/pipeline", async (route) => {

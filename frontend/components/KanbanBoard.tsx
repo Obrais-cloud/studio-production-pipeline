@@ -27,9 +27,14 @@ export default function KanbanBoard({ projects }: { projects: Project[] }) {
   return (
     <div className="flex gap-4 overflow-x-auto pb-2">
       {COLUMNS.map((col) => (
-        <div key={col.key} className="flex w-72 min-w-[18rem] flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/50 p-3">
+        <div
+          key={col.key}
+          className="flex w-72 min-w-[18rem] flex-col gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/50 p-3"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium" style={{ color: col.color }}>{col.label}</span>
+            <span className="text-sm font-medium" style={{ color: col.color }}>
+              {col.label}
+            </span>
             <span className="rounded-full bg-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]">
               {grouped[col.key]?.length || 0}
             </span>

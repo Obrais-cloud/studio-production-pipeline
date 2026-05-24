@@ -86,7 +86,13 @@ function setupProjectMocks(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify([
-        { phase: "scripting", status: "completed", progress_pct: 100, tasks: [], deliverables: ["guion"] },
+        {
+          phase: "scripting",
+          status: "completed",
+          progress_pct: 100,
+          tasks: [],
+          deliverables: ["guion"],
+        },
         { phase: "shooting", status: "active", progress_pct: 60, tasks: [], deliverables: [] },
         { phase: "editing", status: "pending", progress_pct: 0, tasks: [], deliverables: [] },
         { phase: "promotion", status: "pending", progress_pct: 0, tasks: [], deliverables: [] },
@@ -184,26 +190,53 @@ test.describe("Projects CRUD display", () => {
 
   test("empty project list shows zero counts in all kanban columns", async ({ page }) => {
     page.route("**/api/projects", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
     });
     page.route("**/api/production/dashboard", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ total_projects: 0, active_projects: 0, completed_this_month: 0, total_assets: 0, pipeline: [], upcoming_deadlines: [] }),
+        body: JSON.stringify({
+          total_projects: 0,
+          active_projects: 0,
+          completed_this_month: 0,
+          total_assets: 0,
+          pipeline: [],
+          upcoming_deadlines: [],
+        }),
       });
     });
     page.route("**/api/production/pipeline", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
     });
     page.route("**/api/assets", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
     });
     page.route("**/api/publish/status/platforms", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
     });
     page.route("**/api/publish/jobs", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
     });
 
     await page.goto("/");

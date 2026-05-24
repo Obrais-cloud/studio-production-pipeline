@@ -14,9 +14,7 @@ export default defineConfig({
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     // Firefox is available locally; CI only runs chromium for speed
-    ...(process.env.CI
-      ? []
-      : [{ name: "firefox", use: { ...devices["Desktop Firefox"] } }]),
+    ...(process.env.CI ? [] : [{ name: "firefox", use: { ...devices["Desktop Firefox"] } }]),
   ],
   webServer: {
     command: "npm run dev",

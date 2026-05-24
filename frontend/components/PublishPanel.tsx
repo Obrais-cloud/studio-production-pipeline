@@ -41,10 +41,7 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
 
   async function refresh() {
     try {
-      const [ps, js] = await Promise.all([
-        api.getPlatformStatus(),
-        api.getPublishJobs(),
-      ]);
+      const [ps, js] = await Promise.all([api.getPlatformStatus(), api.getPublishJobs()]);
       setPlatforms(ps);
       setJobs(js);
     } catch (e) {
@@ -109,7 +106,12 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
               color: p.connected ? "var(--color-success)" : "var(--color-muted)",
             }}
           >
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.connected ? "var(--color-success)" : "var(--color-muted)" }} />
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{
+                backgroundColor: p.connected ? "var(--color-success)" : "var(--color-muted)",
+              }}
+            />
             {PLATFORM_LABELS[p.platform]}
             {p.connected ? "✓" : "✗"}
           </div>
@@ -121,7 +123,9 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
           <label className="mb-1 block text-xs text-[var(--color-muted)]">Plataforma</label>
           <select
             value={form.platform}
-            onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value as "youtube" | "vimeo" }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, platform: e.target.value as "youtube" | "vimeo" }))
+            }
             className="w-full rounded-lg bg-[var(--color-bg)] px-3 py-2 text-sm text-white outline-none ring-1 ring-[var(--color-border)] focus:ring-[var(--color-accent)]"
           >
             {connectedPlatforms.map((p) => (
@@ -129,7 +133,9 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
                 {PLATFORM_LABELS[p.platform]}
               </option>
             ))}
-            {connectedPlatforms.length === 0 && <option value="youtube">YouTube (no conectado)</option>}
+            {connectedPlatforms.length === 0 && (
+              <option value="youtube">YouTube (no conectado)</option>
+            )}
           </select>
         </div>
         <div>
@@ -140,7 +146,9 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
             className="w-full rounded-lg bg-[var(--color-bg)] px-3 py-2 text-sm text-white outline-none ring-1 ring-[var(--color-border)] focus:ring-[var(--color-accent)]"
           >
             {PRIVACY_OPTIONS.map((o) => (
-              <option key={o.key} value={o.key}>{o.label}</option>
+              <option key={o.key} value={o.key}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -164,7 +172,9 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs text-[var(--color-muted)]">Ruta del video (local)</label>
+          <label className="mb-1 block text-xs text-[var(--color-muted)]">
+            Ruta del video (local)
+          </label>
           <input
             value={form.video_path}
             onChange={(e) => setForm((f) => ({ ...f, video_path: e.target.value }))}
@@ -182,23 +192,39 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
               placeholder="Añade tags y pulsa Enter"
               className="flex-1 rounded-lg bg-[var(--color-bg)] px-3 py-2 text-sm text-white outline-none ring-1 ring-[var(--color-border)] focus:ring-[var(--color-accent)]"
             />
-            <button onClick={addTag} className="rounded-lg bg-[var(--color-border)] px-3 py-2 text-sm text-white hover:bg-[var(--color-accent)]">
+            <button
+              onClick={addTag}
+              className="rounded-lg bg-[var(--color-border)] px-3 py-2 text-sm text-white hover:bg-[var(--color-accent)]"
+            >
               +
             </button>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {form.tags.map((t) => (
-              <span key={t} className="flex items-center gap-1 rounded-md bg-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]">
+              <span
+                key={t}
+                className="flex items-center gap-1 rounded-md bg-[var(--color-border)] px-2 py-0.5 text-xs text-[var(--color-muted)]"
+              >
                 #{t}
-                <button onClick={() => removeTag(t)} className="hover:text-white">✕</button>
+                <button onClick={() => removeTag(t)} className="hover:text-white">
+                  ✕
+                </button>
               </span>
             ))}
           </div>
         </div>
       </div>
 
-      {error && <div className="mb-3 rounded-lg border border-red-900/50 bg-red-900/20 px-3 py-2 text-xs text-red-300">{error}</div>}
-      {success && <div className="mb-3 rounded-lg border border-green-900/50 bg-green-900/20 px-3 py-2 text-xs text-green-300">{success}</div>}
+      {error && (
+        <div className="mb-3 rounded-lg border border-red-900/50 bg-red-900/20 px-3 py-2 text-xs text-red-300">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-3 rounded-lg border border-green-900/50 bg-green-900/20 px-3 py-2 text-xs text-green-300">
+          {success}
+        </div>
+      )}
 
       <button
         onClick={handlePublish}
@@ -210,14 +236,20 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
 
       {jobs.length > 0 && (
         <div className="mt-5">
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">Publicaciones recientes</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+            Publicaciones recientes
+          </h3>
           <div className="flex flex-col gap-2">
             {jobs.slice(0, 5).map((job) => (
-              <div key={job.id} className="flex items-center justify-between rounded-lg border border-[var(--color-border)] px-3 py-2">
+              <div
+                key={job.id}
+                className="flex items-center justify-between rounded-lg border border-[var(--color-border)] px-3 py-2"
+              >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-white">{job.title}</p>
                   <p className="text-[10px] text-[var(--color-muted)]">
-                    {PLATFORM_LABELS[job.platform]} · {new Date(job.created_at).toLocaleString("es-ES")}
+                    {PLATFORM_LABELS[job.platform]} ·{" "}
+                    {new Date(job.created_at).toLocaleString("es-ES")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -231,7 +263,12 @@ export default function PublishPanel({ projectId }: { projectId?: string }) {
                     {job.status}
                   </span>
                   {job.url && (
-                    <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[var(--color-accent)] hover:underline"
+                    >
                       Ver →
                     </a>
                   )}

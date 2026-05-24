@@ -28,10 +28,7 @@ describe("api client", () => {
 
     const result = await api.getProjects();
     expect(result).toEqual(mockProjects);
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/projects"),
-      undefined
-    );
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining("/projects"), undefined);
   });
 
   it("retries on network failure then throws", async () => {

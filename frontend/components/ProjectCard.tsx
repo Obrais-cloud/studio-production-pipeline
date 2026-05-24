@@ -20,15 +20,21 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function ProjectCard({ project }: { project: Project }) {
   const color = STUDIO_COLORS[project.studio] || "#6c757d";
-  const progress = project.tasks_total > 0 ? Math.round((project.tasks_completed / project.tasks_total) * 100) : 0;
+  const progress =
+    project.tasks_total > 0 ? Math.round((project.tasks_completed / project.tasks_total) * 100) : 0;
 
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:brightness-110">
       <div className="mb-3 flex items-center justify-between">
-        <span className="rounded-full px-2.5 py-0.5 text-xs font-medium" style={{ backgroundColor: color + "22", color }}>
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          style={{ backgroundColor: color + "22", color }}
+        >
           {project.studio}
         </span>
-        <span className="text-xs text-[var(--color-muted)]">{STATUS_LABELS[project.status] || project.status}</span>
+        <span className="text-xs text-[var(--color-muted)]">
+          {STATUS_LABELS[project.status] || project.status}
+        </span>
       </div>
       <h3 className="mb-1 text-base font-semibold text-white">{project.title}</h3>
       {project.description && (

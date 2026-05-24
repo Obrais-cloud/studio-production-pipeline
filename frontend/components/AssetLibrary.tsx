@@ -36,7 +36,9 @@ export default function AssetLibrary({ assets }: { assets: Asset[] }) {
   return (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">Biblioteca de Assets</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">
+          Biblioteca de Assets
+        </h2>
         <div className="flex gap-1">
           {types.map((t) => (
             <button
@@ -55,7 +57,10 @@ export default function AssetLibrary({ assets }: { assets: Asset[] }) {
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((a) => (
-          <div key={a.id} className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-3 hover:bg-[var(--color-border)]/30 transition">
+          <div
+            key={a.id}
+            className="flex items-center gap-3 rounded-lg border border-[var(--color-border)] p-3 hover:bg-[var(--color-border)]/30 transition"
+          >
             <span className="text-xl">{TYPE_ICONS[a.type] || "📄"}</span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">{a.name}</p>

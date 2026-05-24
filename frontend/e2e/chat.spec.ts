@@ -8,7 +8,14 @@ function setupChatMocks(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ total_projects: 0, active_projects: 0, completed_this_month: 0, total_assets: 0, pipeline: [], upcoming_deadlines: [] }),
+      body: JSON.stringify({
+        total_projects: 0,
+        active_projects: 0,
+        completed_this_month: 0,
+        total_assets: 0,
+        pipeline: [],
+        upcoming_deadlines: [],
+      }),
     });
   });
   page.route("**/api/production/pipeline", async (route) => {
@@ -30,7 +37,7 @@ test.describe("Chat panel", () => {
     setupChatMocks(page);
 
     page.route("**/api/chat", async (route, request) => {
-      const body = JSON.parse(request.postData() || "{}")
+      const body = JSON.parse(request.postData() || "{}");
       if (body.message === "presupuesto") {
         await route.fulfill({
           status: 200,
@@ -66,7 +73,11 @@ test.describe("Chat panel", () => {
     setupChatMocks(page);
 
     page.route("**/api/chat", async (route) => {
-      await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ detail: "Internal server error" }) });
+      await route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Internal server error" }),
+      });
     });
 
     await page.goto("/");
@@ -78,6 +89,8 @@ test.describe("Chat panel", () => {
     await input.fill("hola");
     await input.press("Enter");
 
-    await expect(page.getByText("Error de conexión con el asistente. Intenta de nuevo.").first()).toBeVisible();
+    await expect(
+      page.getByText("Error de conexión con el asistente. Intenta de nuevo.").first()
+    ).toBeVisible();
   });
 });

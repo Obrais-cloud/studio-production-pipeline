@@ -15,10 +15,18 @@
   --color-cinexin: #f4a261;
 }
 
-html, body {
+html,
+body {
   background-color: var(--color-bg);
   color: #f3f4f6;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
 }
 
 ::-webkit-scrollbar {
