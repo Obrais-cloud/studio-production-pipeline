@@ -16,7 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "playwright:install": "playwright install --with-deps",
-    "prepare": "cd .. && if [ -z \"$CI\" ]; then node frontend/node_modules/husky/index.js .husky; fi"
+    "prepare": "if [ -z \"$CI\" ] && [ -d .git ] && [ -f node_modules/husky/index.js ]; then node node_modules/husky/index.js .husky; fi"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
