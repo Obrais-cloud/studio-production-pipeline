@@ -60,7 +60,7 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
             docker compose -f docker-compose.prod.yml ps
-            docker image prune -f --filter reference=ghcr.io/${{ github.repository_owner | lower }}/studio-production-pipeline-*
+            docker image prune -f --filter reference=ghcr.io/${{ github.repository_owner | lower }}/studio-production-pipeline-backend
 
             echo "Waiting for backend healthcheck..."
             healthy=false
