@@ -24,34 +24,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
-          DEFAULT_BUMP: patch
-
-      - name: Build changelog
-        id: changelog
-        uses: mikepenz/release-changelog-builder-action@v4
-        with:
-          configurationJson: |
-            {
-              "categories": [
-                { "title": "## 🚀 Features", "labels": ["feature"] },
-                { "title": "## 🐛 Fixes", "labels": ["fix", "bugfix", "bug"] },
-                { "title": "## 🧪 Tests", "labels": ["test"] },
-                { "title": "## 📦 Dependencies", "labels": ["dependencies"] },
-                { "title": "## 🔧 CI / Build", "labels": ["ci", "build"] },
-                { "title": "## 📝 Documentation", "labels": ["docs", "documentation"] },
-                { "title": "## 🏠 Maintenance", "labels": ["chore", "refactor"] }
-              ],
-              "template": "#{{CHANGELOG}}\n\n---\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
-              "pr_template": "- #{{TITLE}} (#{{NUMBER}})"
-            }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: none
 
       - name: Create GitHub Release
+        if: steps.tag.outputs.new_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.new_tag }}
           name: Release ${{ steps.tag.outputs.new_tag }}
-          body: ${{ steps.changelog.outputs.changelog }}
+          generate_release_notes: true
           draft: false
           prerelease: false
