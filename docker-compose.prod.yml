@@ -1,0 +1,53 @@
+# NOTE: GHCR image paths are hardcoded to this repository.
+# If you fork this repo, update the image references below.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: studio
+      POSTGRES_PASSWORD: studio
+      POSTGRES_DB: studio_pipeline
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U studio -d studio_pipeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/obrais-cloud/studio-production-pipeline-backend:latest
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./videos:/app/videos:ro
+      - ./secrets:/app/secrets:ro
+    environment:
+      - APP_NAME=Studio Production Pipeline API
+      - CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
+      - API_PREFIX=/api
+      - DATABASE_URL=postgresql://studio:studio@db:5432/studio_pipeline
+      - YOUTUBE_CLIENT_SECRETS=/app/secrets/client_secret.json
+      - VIMEO_ACCESS_TOKEN=${VIMEO_ACCESS_TOKEN}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    image: ghcr.io/obrais-cloud/studio-production-pipeline-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

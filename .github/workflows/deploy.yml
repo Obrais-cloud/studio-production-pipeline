@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy compose file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: docker-compose.prod.yml
+          target: ~/studio-production-pipeline/
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ~/studio-production-pipeline
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+            update_env() {
+              local key="$1"
+              local val="$2"
+              if grep -q "^${key}=" .env 2>/dev/null; then
+                local esc_val
+                esc_val=$(printf '%s\n' "$val" | sed 's/[&/\\]/\\&/g')
+                sed -i "s|^${key}=.*|${key}=${esc_val}|" .env
+              else
+                echo "${key}=${val}" >> .env
+              fi
+            }
+            update_env "VIMEO_ACCESS_TOKEN" "${{ secrets.VIMEO_ACCESS_TOKEN }}"
+            update_env "YOUTUBE_REFRESH_TOKEN" "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
+            chmod 600 .env
+
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml ps
+            docker image prune -f --filter reference=ghcr.io/${{ github.repository_owner | lower }}/studio-production-pipeline-*
+
+            echo "Waiting for backend healthcheck..."
+            healthy=false
+            for i in {1..12}; do
+              if curl -fsS http://localhost:8001/health; then
+                echo "Backend is healthy"
+                healthy=true
+                break
+              fi
+              sleep 5
+            done
+            if [ "$healthy" != "true" ]; then
+              echo "Backend healthcheck failed after 60s — check container logs"
+              docker compose -f docker-compose.prod.yml logs backend --tail 50
+              exit 1
+            fi
