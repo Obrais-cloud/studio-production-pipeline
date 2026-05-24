@@ -56,8 +56,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run backend tests
-        run: pytest tests/ -v --tb=short --junitxml=test-results.xml
+      - name: Run backend tests with coverage
+        run: pytest tests/ -v --tb=short --junitxml=test-results.xml --cov=app --cov-report=xml --cov-report=term
 
       - name: Upload test results
         if: always()
@@ -65,6 +65,14 @@ jobs:
         with:
           name: backend-pytest-results
           path: backend/test-results.xml
+          if-no-files-found: ignore
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
           if-no-files-found: ignore
 
   frontend-vitest:

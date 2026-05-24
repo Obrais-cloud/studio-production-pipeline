@@ -1,0 +1,17 @@
+Collecting pytest-cov
+  Using cached pytest_cov-7.1.0-py3-none-any.whl.metadata (32 kB)
+Collecting coverage>=7.10.6 (from coverage[toml]>=7.10.6->pytest-cov)
+  Using cached coverage-7.14.0-cp314-cp314-macosx_11_0_arm64.whl.metadata (8.5 kB)
+Requirement already satisfied: pluggy>=1.2 in ./.venv/lib/python3.14/site-packages (from pytest-cov) (1.6.0)
+Requirement already satisfied: pytest>=7 in ./.venv/lib/python3.14/site-packages (from pytest-cov) (9.0.3)
+Requirement already satisfied: iniconfig>=1.0.1 in ./.venv/lib/python3.14/site-packages (from pytest>=7->pytest-cov) (2.3.0)
+Requirement already satisfied: packaging>=22 in ./.venv/lib/python3.14/site-packages (from pytest>=7->pytest-cov) (26.2)
+Requirement already satisfied: pygments>=2.7.2 in ./.venv/lib/python3.14/site-packages (from pytest>=7->pytest-cov) (2.20.0)
+Using cached pytest_cov-7.1.0-py3-none-any.whl (22 kB)
+Using cached coverage-7.14.0-cp314-cp314-macosx_11_0_arm64.whl (220 kB)
+Installing collected packages: coverage, pytest-cov
+
+Successfully installed coverage-7.14.0 pytest-cov-7.1.0
+
+[notice] A new release of pip is available: 25.3 -> 26.1.1
+[notice] To update, run: /Users/braisrevalderia/Documents/New project/studio-production-pipeline/backend/.venv/bin/python3.14 -m pip install --upgrade pip
