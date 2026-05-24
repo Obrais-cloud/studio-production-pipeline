@@ -201,3 +201,43 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  close-security-issues:
+    name: Close Resolved Security Issues
+    runs-on: ubuntu-latest
+    needs: [scan-frontend-image, scan-backend-image, scan-filesystem]
+    if: success()
+    timeout-minutes: 5
+
+    steps:
+      - name: Close open vulnerability issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security',
+            });
+            const targets = openIssues.filter(issue => issue.title.includes('Weekly scan found CRITICAL/HIGH vulnerabilities'));
+            if (targets.length === 0) {
+              core.info('No open vulnerability issues to close');
+              return;
+            }
+            for (const issue of targets) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '✅ This issue is being closed because the latest weekly security scan passed with no CRITICAL/HIGH vulnerabilities detected.',
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+              core.info(`Closed issue #${issue.number}`);
+            }
