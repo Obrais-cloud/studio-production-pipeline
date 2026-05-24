@@ -156,6 +156,29 @@ jobs:
       - name: Build Next.js application
         run: npm run build
 
+  frontend-docker-build:
+    name: Frontend Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: false
+          tags: studio-production-pipeline-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   frontend-vitest:
     name: Frontend Unit Tests (Vitest)
     runs-on: ubuntu-latest
