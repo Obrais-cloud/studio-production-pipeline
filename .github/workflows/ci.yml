@@ -159,11 +159,14 @@ jobs:
   frontend-docker-build:
     name: Frontend Docker Build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -173,6 +176,7 @@ jobs:
         with:
           context: ./frontend
           push: false
+          platforms: linux/amd64,linux/arm64
           tags: studio-production-pipeline-frontend:latest
           build-args: |
             NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api
