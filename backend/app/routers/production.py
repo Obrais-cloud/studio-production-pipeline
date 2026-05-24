@@ -23,7 +23,18 @@ def get_pipeline(db: Session = Depends(get_db)) -> list[PipelineItem]:
             "phase": item.phase,
             "status": item.status,
             "progress_pct": item.progress_pct,
-            "tasks": item.tasks,
+            "tasks": [
+                {
+                    "id": t.id,
+                    "project_id": t.project_id,
+                    "title": t.title,
+                    "status": t.status,
+                    "assignee": t.assignee,
+                    "due_date": t.due_date.isoformat() if t.due_date else None,
+                    "created_at": t.created_at.isoformat() if t.created_at else None,
+                }
+                for t in item.tasks
+            ],
             "deliverables": item.deliverables or [],
         })
     return result
