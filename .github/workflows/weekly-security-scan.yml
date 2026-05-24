@@ -9,6 +9,7 @@ permissions:
   contents: read
   packages: read
   security-events: write
+  issues: write
 
 env:
   REGISTRY: ghcr.io
@@ -129,6 +130,68 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Create GitHub issue for vulnerabilities
+        uses: actions/github-script@v7
+        env:
+          FRONTEND_RESULT: ${{ needs.scan-frontend-image.result }}
+          BACKEND_RESULT: ${{ needs.scan-backend-image.result }}
+          FILESYSTEM_RESULT: ${{ needs.scan-filesystem.result }}
+        with:
+          script: |
+            const frontendResult = process.env.FRONTEND_RESULT;
+            const backendResult = process.env.BACKEND_RESULT;
+            const filesystemResult = process.env.FILESYSTEM_RESULT;
+            const runUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+            const today = new Date().toISOString().split('T')[0];
+
+            const { data: openIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security',
+            });
+            const duplicate = openIssues.find(issue => issue.title.includes('Weekly scan found CRITICAL/HIGH vulnerabilities'));
+            if (duplicate) {
+              core.info(`Open security issue already exists: #${duplicate.number}`);
+              return;
+            }
+
+            const title = `[Security] Weekly scan found CRITICAL/HIGH vulnerabilities — ${today}`;
+            const body = [
+              '🚨 Weekly security scan detected CRITICAL/HIGH vulnerabilities.',
+              '',
+              '| Scan | Result |',
+              '|------|--------|',
+              `| Frontend image | ${frontendResult} |`,
+              `| Backend image | ${backendResult} |`,
+              `| Filesystem | ${filesystemResult} |`,
+              '',
+              `[View workflow run](${runUrl})`,
+            ].join('\n');
+
+            try {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['security', 'trivy', 'automated'],
+              });
+            } catch (err) {
+              if (err.status === 422) {
+                core.warning('Labels may not exist; retrying with only "security" label');
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title,
+                  body,
+                  labels: ['security'],
+                });
+              } else {
+                throw err;
+              }
+            }
+
       - name: Send Slack alert
         uses: slackapi/slack-github-action@v1
         with:
