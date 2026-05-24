@@ -55,6 +55,11 @@ jobs:
             }
             update_env "VIMEO_ACCESS_TOKEN" "${{ secrets.VIMEO_ACCESS_TOKEN }}"
             update_env "YOUTUBE_REFRESH_TOKEN" "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
+
+            # Only update CORS_ORIGINS if explicitly configured; otherwise leave existing value or docker-compose fallback
+            if [ -n "${{ secrets.CORS_ORIGINS }}" ]; then
+              update_env "CORS_ORIGINS" "${{ secrets.CORS_ORIGINS }}"
+            fi
             chmod 600 .env
 
             docker compose -f docker-compose.prod.yml pull
