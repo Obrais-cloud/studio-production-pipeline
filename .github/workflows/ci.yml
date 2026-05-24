@@ -108,8 +108,8 @@ jobs:
       - name: Run typecheck
         run: npm run typecheck
 
-      - name: Run Vitest
-        run: npx vitest run --reporter=junit --outputFile=./test-results.xml
+      - name: Run Vitest with coverage
+        run: npx vitest run --reporter=junit --outputFile=./test-results.xml --coverage
 
       - name: Upload test results
         if: always()
@@ -118,6 +118,23 @@ jobs:
           name: vitest-results
           path: frontend/test-results.xml
           if-no-files-found: ignore
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
+          if-no-files-found: ignore
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
 
   frontend-e2e:
     name: Frontend E2E Tests (Playwright)
