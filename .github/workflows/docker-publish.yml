@@ -7,6 +7,7 @@ on:
 permissions:
   contents: read
   packages: write
+  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +20,7 @@ jobs:
   frontend-publish:
     name: Publish Frontend Image
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -62,10 +63,34 @@ jobs:
           cache-from: type=gha,scope=frontend-publish
           cache-to: type=gha,mode=max,scope=frontend-publish
 
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner | lower }}/studio-production-pipeline-frontend:latest
+          format: sarif
+          output: trivy-frontend-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-frontend-results.sarif
+          category: trivy-frontend
+
+      - name: Upload Trivy scan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-scan
+          path: trivy-frontend-results.sarif
+          if-no-files-found: ignore
+
   backend-publish:
     name: Publish Backend Image
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -105,3 +130,27 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=backend-publish
           cache-to: type=gha,mode=max,scope=backend-publish
+
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ github.repository_owner | lower }}/studio-production-pipeline-backend:latest
+          format: sarif
+          output: trivy-backend-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-backend-results.sarif
+          category: trivy-backend
+
+      - name: Upload Trivy scan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-scan
+          path: trivy-backend-results.sarif
+          if-no-files-found: ignore

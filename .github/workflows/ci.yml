@@ -109,6 +109,33 @@ jobs:
           cache-from: type=gha,scope=backend
           cache-to: type=gha,mode=max,scope=backend
 
+      - name: Build backend image for scan
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: false
+          load: true
+          platforms: linux/amd64
+          tags: studio-production-pipeline-backend:scan
+          cache-from: type=gha,scope=backend
+
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: studio-production-pipeline-backend:scan
+          format: sarif
+          output: trivy-backend-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Upload Trivy scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-backend-scan
+          path: trivy-backend-results.sarif
+          if-no-files-found: ignore
+
   frontend-lint:
     name: Frontend Lint (ESLint)
     runs-on: ubuntu-latest
@@ -207,6 +234,35 @@ jobs:
             NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Build frontend image for scan
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: false
+          load: true
+          platforms: linux/amd64
+          tags: studio-production-pipeline-frontend:scan
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://127.0.0.1:8001/api
+          cache-from: type=gha,scope=frontend
+
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: studio-production-pipeline-frontend:scan
+          format: sarif
+          output: trivy-frontend-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      - name: Upload Trivy scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-frontend-scan
+          path: trivy-frontend-results.sarif
+          if-no-files-found: ignore
 
   frontend-vitest:
     name: Frontend Unit Tests (Vitest)
