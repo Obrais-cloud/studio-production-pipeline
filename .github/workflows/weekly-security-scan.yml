@@ -120,3 +120,21 @@ jobs:
           name: trivy-fs-scan
           path: trivy-fs-results.sarif
           if-no-files-found: ignore
+
+  notify:
+    name: Notify on Vulnerabilities
+    runs-on: ubuntu-latest
+    needs: [scan-frontend-image, scan-backend-image, scan-filesystem]
+    if: failure()
+    timeout-minutes: 5
+
+    steps:
+      - name: Send Slack alert
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 *Weekly Security Scan Alert*\nCRITICAL/HIGH vulnerabilities detected in *${{ github.repository }}*.\n\n• Frontend image scan: ${{ needs.scan-frontend-image.result }}\n• Backend image scan: ${{ needs.scan-backend-image.result }}\n• Filesystem scan: ${{ needs.scan-filesystem.result }}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
