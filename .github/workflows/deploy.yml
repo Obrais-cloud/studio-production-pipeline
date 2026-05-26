@@ -57,17 +57,21 @@ jobs:
 
               echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-              update_env() {
-                local key="$1"
-                local val="$2"
-                if grep -q "^${key}=" .env 2>/dev/null; then
-                  local esc_val
-                  esc_val=$(printf '%s\n' "$val" | sed 's/[&/\\]/\\&/g')
-                  sed -i "s|^${key}=.*|${key}=${esc_val}|" .env
+            update_env() {
+              local key="$1"
+              local val="$2"
+              if grep -q "^${key}=" .env 2>/dev/null; then
+                local esc_val
+                esc_val=$(printf '%s\n' "$val" | sed 's/[&/\\]/\\&/g')
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                  sed -i '' "s|^${key}=.*|${key}=${esc_val}|" .env
                 else
-                  echo "${key}=${val}" >> .env
+                  sed -i "s|^${key}=.*|${key}=${esc_val}|" .env
                 fi
-              }
+              else
+                echo "${key}=${val}" >> .env
+              fi
+            }
               update_env "VIMEO_ACCESS_TOKEN" "${{ secrets.VIMEO_ACCESS_TOKEN }}"
               update_env "YOUTUBE_REFRESH_TOKEN" "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
 
@@ -133,14 +137,14 @@ jobs:
               alembic upgrade head
 
               # Seed data if database is empty
-              python -c "
+              python3 -c "
             from app.database import SessionLocal
             from app.models import Project
             db = SessionLocal()
             if db.query(Project).first() is None:
                 print('Database empty — seeding...')
                 import subprocess
-                subprocess.run(['python', 'app/seed.py'])
+                subprocess.run(['python3', 'app/seed.py'])
             else:
                 print('Database already has data — skipping seed')
             db.close()
