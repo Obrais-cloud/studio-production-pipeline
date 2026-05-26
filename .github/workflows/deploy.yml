@@ -16,7 +16,7 @@ jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -40,45 +40,127 @@ jobs:
           script: |
             set -e
             cd ~/studio-production-pipeline
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
-            update_env() {
-              local key="$1"
-              local val="$2"
-              if grep -q "^${key}=" .env 2>/dev/null; then
-                local esc_val
-                esc_val=$(printf '%s\n' "$val" | sed 's/[&/\\]/\\&/g')
-                sed -i "s|^${key}=.*|${key}=${esc_val}|" .env
-              else
-                echo "${key}=${val}" >> .env
-              fi
-            }
-            update_env "VIMEO_ACCESS_TOKEN" "${{ secrets.VIMEO_ACCESS_TOKEN }}"
-            update_env "YOUTUBE_REFRESH_TOKEN" "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
-
-            # Only update CORS_ORIGINS if explicitly configured; otherwise leave existing value or docker-compose fallback
-            if [ -n "${{ secrets.CORS_ORIGINS }}" ]; then
-              update_env "CORS_ORIGINS" "${{ secrets.CORS_ORIGINS }}"
+            # Detect if Docker daemon is accessible
+            DOCKER_AVAILABLE=false
+            if bash -lc "command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1" 2>/dev/null; then
+              DOCKER_AVAILABLE=true
             fi
-            chmod 600 .env
 
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker compose -f docker-compose.prod.yml ps
-            docker image prune -f --filter reference=ghcr.io/${{ github.repository_owner | lower }}/studio-production-pipeline-backend
+            if [ "$DOCKER_AVAILABLE" = "true" ]; then
+              echo "Docker available — using Docker Compose deployment"
 
-            echo "Waiting for backend healthcheck..."
-            healthy=false
-            for i in {1..12}; do
-              if curl -fsS http://localhost:8001/health; then
-                echo "Backend is healthy"
-                healthy=true
-                break
+              echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+
+              update_env() {
+                local key="$1"
+                local val="$2"
+                if grep -q "^${key}=" .env 2>/dev/null; then
+                  local esc_val
+                  esc_val=$(printf '%s\n' "$val" | sed 's/[&/\\]/\\&/g')
+                  sed -i "s|^${key}=.*|${key}=${esc_val}|" .env
+                else
+                  echo "${key}=${val}" >> .env
+                fi
+              }
+              update_env "VIMEO_ACCESS_TOKEN" "${{ secrets.VIMEO_ACCESS_TOKEN }}"
+              update_env "YOUTUBE_REFRESH_TOKEN" "${{ secrets.YOUTUBE_REFRESH_TOKEN }}"
+
+              # Only update CORS_ORIGINS if explicitly configured; otherwise leave existing value or docker-compose fallback
+              if [ -n "${{ secrets.CORS_ORIGINS }}" ]; then
+                update_env "CORS_ORIGINS" "${{ secrets.CORS_ORIGINS }}"
               fi
-              sleep 5
-            done
-            if [ "$healthy" != "true" ]; then
-              echo "Backend healthcheck failed after 60s — check container logs"
-              docker compose -f docker-compose.prod.yml logs backend --tail 50
-              exit 1
+              chmod 600 .env
+
+              docker compose -f docker-compose.prod.yml pull
+              docker compose -f docker-compose.prod.yml up -d --remove-orphans
+              docker compose -f docker-compose.prod.yml ps
+              docker image prune -f --filter reference=ghcr.io/${{ github.repository_owner | lower }}/studio-production-pipeline-backend
+
+              echo "Waiting for backend healthcheck..."
+              healthy=false
+              for i in {1..12}; do
+                if curl -fsS http://localhost:8001/health; then
+                  echo "Backend is healthy"
+                  healthy=true
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$healthy" != "true" ]; then
+                echo "Backend healthcheck failed after 60s — check container logs"
+                docker compose -f docker-compose.prod.yml logs backend --tail 50
+                exit 1
+              fi
+
+            else
+              echo "Docker not available — using direct Python deployment"
+
+              APP_DIR="$HOME/studio-production-pipeline"
+              mkdir -p "$APP_DIR"
+              cd "$APP_DIR"
+
+              # Clone or update repo
+              if [ ! -d ".git" ]; then
+                git clone https://github.com/${{ github.repository }}.git .
+              fi
+              git pull origin main
+
+              cd backend
+
+              # Create/update .env
+              cat > .env << 'ENVEOF'
+            DATABASE_URL=sqlite:///./studio.db
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,https://frontend-egu555bv0-obrais-clouds-projects.vercel.app' }}
+            API_PREFIX=/api
+            YOUTUBE_CLIENT_SECRETS=/app/secrets/client_secret.json
+            VIMEO_ACCESS_TOKEN=${{ secrets.VIMEO_ACCESS_TOKEN }}
+            YOUTUBE_REFRESH_TOKEN=${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+            ENVEOF
+              chmod 600 .env
+
+              # Setup Python venv
+              python3 -m venv .venv
+              source .venv/bin/activate
+              pip install -r requirements.txt
+
+              # Run migrations
+              alembic upgrade head
+
+              # Seed data if database is empty
+              python -c "
+            from app.database import SessionLocal
+            from app.models import Project
+            db = SessionLocal()
+            if db.query(Project).first() is None:
+                print('Database empty — seeding...')
+                import subprocess
+                subprocess.run(['python', 'app/seed.py'])
+            else:
+                print('Database already has data — skipping seed')
+            db.close()
+            " 2>/dev/null || true
+
+              # Stop any existing uvicorn
+              pkill -f "uvicorn app.main:app" 2>/dev/null || true
+              sleep 2
+
+              # Start backend
+              nohup .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 > backend.log 2>&1 &
+
+              echo "Waiting for backend healthcheck..."
+              healthy=false
+              for i in {1..12}; do
+                if curl -fsS http://127.0.0.1:8001/health >/dev/null 2>&1; then
+                  echo "Backend is healthy"
+                  healthy=true
+                  break
+                fi
+                sleep 5
+              done
+              if [ "$healthy" != "true" ]; then
+                echo "Backend healthcheck failed after 60s — check logs"
+                cat backend.log
+                exit 1
+              fi
             fi
